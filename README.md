@@ -6,7 +6,7 @@ This project is intended solely for **educational** and **demonstration purposes
 
 All code, content, and materials provided here are for learning, experimentation, and showcasing skills only. Any resemblance to existing products or services is purely coincidental.
 
-Use at your own discretion. The creator assumes no responsibility for any misuse or unintended consequences. ⚠️⚠️⚠️
+Use at your own discretion. The creator assumes no responsibility for any misuse or unintended consequences.
 
 
 ## ⚙️ Setup
