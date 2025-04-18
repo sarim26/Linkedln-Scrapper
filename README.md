@@ -19,7 +19,7 @@ py main.py
 ============================================>
 1) Fill in the boxes in the UI.
 2) Click Start Search.
-3) Results are automatically saved in the AllCSV folder 
-   ============================================>
+3) Results are automatically saved in the AllCSV folder
+4) ============================================>
 
 ## ✨Note: Avoid entering more than 10-20 in the "Number of links to find" box — Google might block your IP. I'm working on fixing this in future versions.
