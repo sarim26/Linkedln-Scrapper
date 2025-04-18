@@ -4,7 +4,7 @@
 
 This project is intended solely for **educational** and **demonstration purposes**. It is not meant for commercial use or deployment in production environments.
 
-All code, content, and materials provided here are for learning, experimentation, and showcasing skills only. Any resemblance to existing products or services is purely coincidental.
+All code, content, and materials provided here are for learning, experimentation, and demonstration purposes only. Any resemblance to existing products or services is purely coincidental.
 
 Use at your own discretion. The creator assumes no responsibility for any misuse or unintended consequences.
 
