@@ -6,4 +6,5 @@ selenium>=4.15.2
 webdriver-manager>=4.0.1
 python-dotenv>=1.0.0
 tqdm>=4.66.1
-colorama>=0.4.6 
+colorama>=0.4.6
+PyQt6>=6.6.1 
