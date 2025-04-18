@@ -127,12 +127,21 @@ class LinkedInProfileFinder:
     def simulate_human_behavior(self):
         """Simulate human-like scrolling and mouse movements"""
         try:
+            # Random scroll down
             scroll_amount = random.randint(300, 700)
-            self.driver.execute_script(f"window.scrollBy(0, {scroll_amount})")
+            self.driver.execute_script(f"window.scrollBy(0, {scroll_amount});")
             time.sleep(random.uniform(0.5, 1.5))
             
+            # Sometimes scroll back up a bit
             if random.random() > 0.7:
-                self.driver.execute_script(f"window.scrollBy(0, -{random.randint(100, 300)})")
+                self.driver.execute_script(f"window.scrollBy(0, -{random.randint(100, 300)});")
+                time.sleep(random.uniform(0.3, 0.7))
+                
+            # Occasionally scroll to bottom and back
+            if random.random() > 0.9:
+                self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                time.sleep(random.uniform(0.5, 1))
+                self.driver.execute_script(f"window.scrollTo(0, {random.randint(100, 500)});")
                 time.sleep(random.uniform(0.3, 0.7))
         except:
             pass
@@ -156,7 +165,7 @@ class LinkedInProfileFinder:
                 if part.isdigit():
                     continue
                     
-                # Skip if part looks like a random string (mix of letters and numbers or too long)
+                # Skip if part looks like a random string (mix of letters and numbers)
                 if (any(c.isdigit() for c in part) or 
                     len(part) > 15 or  # Skip very long parts
                     (any(not c.isalpha() for c in part) and len(part) > 5)):  # Skip parts with special chars
@@ -166,13 +175,13 @@ class LinkedInProfileFinder:
             
             # If we have no valid parts, return default
             if not clean_parts:
-                return "Name Not Found"
+                return url
             
             # Convert to title case and join
             name = ' '.join(part.title() for part in clean_parts)
             return name
         except:
-            return "Name Not Found"
+            return url
 
     def search_profiles(self, keywords: str, num_profiles: int) -> list:
         """Search for LinkedIn profile URLs using Google"""
@@ -180,88 +189,89 @@ class LinkedInProfileFinder:
         page = 0
         search_query = f'site:linkedin.com/in/ {keywords}'
         
-        self.emit_status(f"Starting search with query: {search_query}", "info")
+        self.emit_status(f"Starting search with keywords: {keywords}")
 
         try:
-            while len(profile_urls) < num_profiles:
-                # Google search URL
+            while len(profile_urls) < num_profiles:  # Main loop condition
                 search_url = f"https://www.google.com/search?q={search_query.replace(' ', '+')}"
                 if page > 0:
                     search_url += f"&start={page * 10}"
                 
-                self.emit_status(f"Searching page {page + 1}...", "info")
                 self.driver.get(search_url)
-                self.random_delay(3, 5)  # Initial delay
+                time.sleep(random.uniform(2, 4))
                 
+                # Add human-like behavior
                 self.simulate_human_behavior()
                 
                 try:
-                    # Check for Google captcha
-                    if "Our systems have detected unusual traffic" in self.driver.page_source:
-                        self.emit_status("Google captcha detected. Please try again later.", "error")
-                        break
-                        
-                    # Wait for results to load
+                    # Wait for results to load and get all divs containing results
                     results = WebDriverWait(self.driver, 10).until(
-                        EC.presence_of_all_elements_located((By.CSS_SELECTOR, "div.g"))
+                        EC.presence_of_all_elements_located((By.CSS_SELECTOR, "div.yuRUbf"))
                     )
                     
                     if not results:
-                        self.emit_status("No results found on the page", "warning")
                         break
 
-                    found_on_page = False
-                    
                     for result in results:
-                        try:
-                            # Get link from result
-                            link = result.find_element(By.CSS_SELECTOR, "a")
-                            url = link.get_attribute("href")
+                        # Break if we've found enough profiles
+                        if len(profile_urls) >= num_profiles:
+                            break
                             
-                            if url and "/in/" in url and "linkedin.com" in url and url not in profile_urls:
-                                profile_urls.append(url)
-                                found_on_page = True
-                                name = self.extract_name_from_url(url)
-                                self.emit_status(f"Found Profile ({len(profile_urls)}/{num_profiles}): {name}", "success")
-                                
-                                if self.progress_signal:
-                                    progress = int((len(profile_urls) / num_profiles) * 100)
-                                    self.progress_signal.emit(progress)
-                                
-                                self.random_delay(1, 2)
-                                
+                        try:
+                            # Get all 'a' tags directly from the result div
+                            links = result.find_elements(By.TAG_NAME, "a")
+                            for link in links:
+                                # Break if we've found enough profiles
                                 if len(profile_urls) >= num_profiles:
                                     break
                                     
-                        except Exception as e:
+                                url = link.get_attribute("href")
+                                
+                                if url and "/in/" in url and "linkedin.com" in url and url not in profile_urls:
+                                    profile_urls.append(url)
+                                    name = self.extract_name_from_url(url)
+                                    self.emit_status(f"Found Profile ({len(profile_urls)}/{num_profiles}): {name}")
+                                    
+                                    if self.progress_signal:
+                                        progress = int((len(profile_urls) / num_profiles) * 100)
+                                        self.progress_signal.emit(progress)
+                                    
+                                    # Add small delay between profile processing
+                                    time.sleep(random.uniform(0.5, 1))
+                        except:
                             continue
 
-                    if not found_on_page:
-                        self.emit_status(f"No new profiles found on page {page + 1}", "warning")
-                        if page > 0:  # Try at least 2 pages
-                            break
-                    
-                    # Check for "Next" button
-                    try:
-                        next_button = self.driver.find_element(By.ID, "pnnext")
-                        if next_button:
-                            page += 1
-                            self.random_delay(3, 5)
-                    except:
-                        self.emit_status("No more pages available", "info")
+                    # Break the outer loop if we've found enough profiles
+                    if len(profile_urls) >= num_profiles:
                         break
 
+                    # Only look for next page if we need more profiles
+                    if len(profile_urls) < num_profiles:
+                        try:
+                            next_button = self.driver.find_element(By.ID, "pnnext")
+                            if next_button:
+                                # Scroll to next button with human-like behavior
+                                self.driver.execute_script("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", next_button)
+                                time.sleep(random.uniform(1, 2))
+                                page += 1
+                                time.sleep(random.uniform(2, 4))
+                        except:
+                            break
+
                 except Exception as e:
-                    self.emit_status(f"Error processing page: {str(e)}", "error")
+                    self.emit_status(f"Error: {str(e)}", "error")
                     break
 
         except Exception as e:
-            self.emit_status(f"Search error: {str(e)}", "error")
+            self.emit_status(f"Error: {str(e)}", "error")
         finally:
+            # Ensure we don't return more profiles than requested
+            profile_urls = profile_urls[:num_profiles]
+            
             if profile_urls:
-                self.emit_status(f"Search complete. Found {len(profile_urls)} LinkedIn profiles!", "success")
+                self.emit_status(f"Found {len(profile_urls)} LinkedIn profiles!")
             else:
-                self.emit_status("No LinkedIn profiles found. ", "warning")
+                self.emit_status("No LinkedIn profiles found.")
             self.driver.quit()
 
         return profile_urls
