@@ -1,6 +1,13 @@
-# 🔍 Linkedln Google Search Scraper
+# 🔍 Linkedln Search Scraper
 
-A simple tool to scrape Linkedln search results and save them in CSV format.
+## ⚠️⚠️⚠️ NOTE: ## Disclaimer
+
+This project is intended solely for **educational** and **demonstration purposes**. It is not meant for commercial use or deployment in production environments.
+
+All code, content, and materials provided here are for learning, experimentation, and showcasing skills only. Any resemblance to existing products or services is purely coincidental.
+
+Use at your own discretion. The creator assumes no responsibility for any misuse or unintended consequences. ⚠️⚠️⚠️
+
 
 ## ⚙️ Setup
 Open your terminal and run:
