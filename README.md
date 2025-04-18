@@ -1,6 +1,6 @@
 # 🔍 Linkedln Search Scraper
 
-## ⚠️⚠️⚠️ NOTE: ## Disclaimer
+## ⚠️⚠️⚠️ Disclaimer:
 
 This project is intended solely for **educational** and **demonstration purposes**. It is not meant for commercial use or deployment in production environments.
 
